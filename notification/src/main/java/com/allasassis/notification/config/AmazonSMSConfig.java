@@ -24,6 +24,7 @@ public class AmazonSMSConfig {
         return new BasicAWSCredentials(accessKey, secretKey);
     }
 
+    @Bean
     public AmazonSNS amazonSNS() {
         return AmazonSNSClientBuilder.standard().
                 withCredentials(new AWSStaticCredentialsProvider(awsCredentials())).withRegion(Regions.US_EAST_1).build();
