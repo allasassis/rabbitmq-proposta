@@ -1,0 +1,39 @@
+package com.allasassis.rabbitmqapp.service;
+
+import com.allasassis.rabbitmqapp.dto.ProposalRequestDto;
+import com.allasassis.rabbitmqapp.dto.ProposalResponseDto;
+import com.allasassis.rabbitmqapp.entity.Proposal;
+import com.allasassis.rabbitmqapp.mapper.ProposalMapper;
+import com.allasassis.rabbitmqapp.repository.ProposalRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class ProposalService {
+
+    private ProposalRepository proposalRepository;
+
+    private NotificationService notificationService;
+
+    private String exchange;
+
+    public ProposalService(ProposalRepository proposalRepository, NotificationService notificationService, @Value("${rabbitmq.pendingpropose.exchange}") String exchange) {
+        this.proposalRepository = proposalRepository;
+        this.notificationService = notificationService;
+        this.exchange = exchange;
+    }
+
+    public ProposalResponseDto create(ProposalRequestDto dto) {
+        Proposal proposal = ProposalMapper.INSTANCE.convertDtoToProposal(dto);
+        proposalRepository.save(proposal);
+        notificationService.notify(proposal, exchange);
+        return ProposalMapper.INSTANCE.convertEntityToDto(proposal);
+    }
+
+    public List<ProposalResponseDto> getProposals() {
+        return ProposalMapper.INSTANCE.convertListEntityToDto(proposalRepository.findAll());
+    }
+}
