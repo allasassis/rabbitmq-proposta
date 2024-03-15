@@ -5,7 +5,6 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -16,7 +15,10 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     @Value("${rabbitmq.pendingpropose.exchange}")
-    private String exchange;
+    private String pendingProposeExchange;
+
+    @Value("${rabbitmq.finishedpropose.exchange}")
+    private String finishedProposeExchange;
 
     @Bean
     public Queue createQueueMsCreditAnalysis() {
@@ -29,12 +31,12 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue createQueueMsConcludedPropose() {
+    public Queue createQueueMsFinishedPropose() {
         return QueueBuilder.durable("concluded-propose.ms-propose").build();
     }
 
     @Bean
-    public Queue createQueueMsConcludedNotification() {
+    public Queue createQueueMsFinishedNotification() {
         return QueueBuilder.durable("concluded-propose.ms-notification").build();
     }
 
@@ -51,7 +53,12 @@ public class RabbitMQConfig {
 
     @Bean
     public FanoutExchange createFanoutExchangePendingPropose() {
-        return ExchangeBuilder.fanoutExchange(exchange).build();
+        return ExchangeBuilder.fanoutExchange(pendingProposeExchange).build();
+    }
+
+    @Bean
+    public FanoutExchange createFanoutExchangeFinishedPropose() {
+        return ExchangeBuilder.fanoutExchange(finishedProposeExchange).build();
     }
 
     @Bean
@@ -62,6 +69,16 @@ public class RabbitMQConfig {
     @Bean
     public Binding createBindingPendingProposeMSNotification() {
         return BindingBuilder.bind(createQueueMsNotification()).to(createFanoutExchangePendingPropose());
+    }
+
+    @Bean
+    public Binding createBindingFinishedProposeMSProposalApp() {
+        return BindingBuilder.bind(createQueueMsFinishedPropose()).to(createFanoutExchangeFinishedPropose());
+    }
+
+    @Bean
+    public Binding createBindingFinishedProposeMSNotification() {
+        return BindingBuilder.bind(createQueueMsFinishedNotification()).to(createFanoutExchangeFinishedPropose());
     }
 
     @Bean
