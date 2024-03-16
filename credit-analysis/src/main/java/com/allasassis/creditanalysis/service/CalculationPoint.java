@@ -1,4 +1,4 @@
-package com.allasassis.creditanalysis.service.strategy;
+package com.allasassis.creditanalysis.service;
 
 import com.allasassis.creditanalysis.domain.Proposal;
 

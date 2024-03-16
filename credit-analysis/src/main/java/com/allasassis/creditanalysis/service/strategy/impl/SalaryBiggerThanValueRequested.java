@@ -1,10 +1,10 @@
 package com.allasassis.creditanalysis.service.strategy.impl;
 
 import com.allasassis.creditanalysis.domain.Proposal;
-import com.allasassis.creditanalysis.service.strategy.CalculationPoint;
+import com.allasassis.creditanalysis.service.CalculationPoint;
+import org.springframework.stereotype.Component;
 
-import java.util.Random;
-
+@Component
 public class SalaryBiggerThanValueRequested implements CalculationPoint {
 
     @Override
