@@ -20,6 +20,19 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.finishedpropose.exchange}")
     private String finishedProposeExchange;
 
+    // Spring automatically inject the connectionFactory
+    @Bean
+    public RabbitAdmin createRabbitAdmin(ConnectionFactory connectionFactory) {
+        return new RabbitAdmin(connectionFactory);
+    }
+
+    @Bean
+    public ApplicationListener<ApplicationReadyEvent> initializeAdmin(RabbitAdmin rabbitAdmin) {
+        return event -> rabbitAdmin.initialize();
+    }
+
+    // QUEUES
+
     @Bean
     public Queue createQueueMsCreditAnalysis() {
         return QueueBuilder.durable("pending-propose.ms-credit-analysis").build();
@@ -40,16 +53,7 @@ public class RabbitMQConfig {
         return QueueBuilder.durable("concluded-propose.ms-notification").build();
     }
 
-    // Spring automatically inject the connectionFactory
-    @Bean
-    public RabbitAdmin createRabbitAdmin(ConnectionFactory connectionFactory) {
-        return new RabbitAdmin(connectionFactory);
-    }
-
-    @Bean
-    public ApplicationListener<ApplicationReadyEvent> initializeAdmin(RabbitAdmin rabbitAdmin) {
-        return event -> rabbitAdmin.initialize();
-    }
+    // FANOUTS
 
     @Bean
     public FanoutExchange createFanoutExchangePendingPropose() {
@@ -60,6 +64,8 @@ public class RabbitMQConfig {
     public FanoutExchange createFanoutExchangeFinishedPropose() {
         return ExchangeBuilder.fanoutExchange(finishedProposeExchange).build();
     }
+
+    // BINDINGS
 
     @Bean
     public Binding createBindingPendingProposeMSCreditAnalysis() {
