@@ -14,11 +14,11 @@ import java.util.List;
 @Service
 public class ProposalService {
 
-    private ProposalRepository proposalRepository;
+    private final ProposalRepository proposalRepository;
 
-    private NotificationService notificationService;
+    private final NotificationService notificationService;
 
-    private String exchange;
+    private final String exchange;
 
     public ProposalService(ProposalRepository proposalRepository, NotificationService notificationService, @Value("${rabbitmq.pendingpropose.exchange}") String exchange) {
         this.proposalRepository = proposalRepository;

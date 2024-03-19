@@ -12,6 +12,6 @@ public class NotificationRabbitService {
     private RabbitTemplate rabbitTemplate;
 
     public void notify(String exchange, Proposal proposal) {
-        rabbitTemplate.convertAndSend(exchange, proposal);
+        rabbitTemplate.convertAndSend(exchange, "", proposal);
     }
 }
