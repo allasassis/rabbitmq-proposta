@@ -16,6 +16,6 @@ public class PendingProposeListener {
 
     @RabbitListener(queues = "${rabbitmq.queue.pending.propose}")
     public void pendingPropose(Proposal proposal) {
-            creditAnalysisService.analyse(proposal);
+        creditAnalysisService.analyse(proposal);
     }
 }

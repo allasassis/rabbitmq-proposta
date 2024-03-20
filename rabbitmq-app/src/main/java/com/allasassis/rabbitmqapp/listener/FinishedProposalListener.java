@@ -20,7 +20,7 @@ public class FinishedProposalListener {
 
     @RabbitListener(queues = "${rabbitmq.queue.finished.propose}")
     public void finishedProposal(Proposal proposal) {
-        proposalRepository.save(proposal);
+        proposalRepository.updateProposal(proposal.getId(), proposal.getApproved(), proposal.getObservation());
         webSocketService.notify(ProposalMapper.INSTANCE.convertEntityToDto(proposal));
     }
 }
