@@ -20,32 +20,63 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.finishedpropose.exchange}")
     private String finishedProposeExchange;
 
-    // Spring automatically inject the connectionFactory
+    @Value("${rabbitmq.pendingpropose.exchange.dlx}")
+    private String pendingProposeExchangeDlx;
+
+    @Value("${rabbitmq.finishedpropose.exchange.dlx}")
+    private String finishedProposeExchangeDlx;
+
+    // DEAD LETTER QUEUES - Exchanges
+
     @Bean
-    public RabbitAdmin createRabbitAdmin(ConnectionFactory connectionFactory) {
-        return new RabbitAdmin(connectionFactory);
+    public FanoutExchange createFanoutExchangePendingProposeDlq() {
+        return ExchangeBuilder.fanoutExchange(pendingProposeExchangeDlx).build();
     }
 
     @Bean
-    public ApplicationListener<ApplicationReadyEvent> initializeAdmin(RabbitAdmin rabbitAdmin) {
-        return event -> rabbitAdmin.initialize();
+    public FanoutExchange createFanoutExchangeFinishedProposeDlq() {
+        return ExchangeBuilder.fanoutExchange(finishedProposeExchangeDlx).build();
+    }
+
+    // DEAD LETTER QUEUES - Queues
+
+    @Bean
+    public Queue createQueueMsCreditAnalysisDlq() {
+        return QueueBuilder.durable("pending-propose.ms-credit-analysis.dlq").build();
+    }
+
+    @Bean
+    public Queue createQueueMsFinishedProposeDlq() {
+        return QueueBuilder.durable("concluded-propose.ms-propose.dlq").build();
+    }
+
+    // DEAD LETTER QUEUES - Bindings
+
+    @Bean
+    public Binding createBindingPendingProposeMSCreditAnalysisDlq() {
+        return BindingBuilder.bind(createQueueMsCreditAnalysisDlq()).to(createFanoutExchangePendingProposeDlq());
+    }
+
+    @Bean
+    public Binding createBindingFinishedProposeDlq() {
+        return BindingBuilder.bind(createQueueMsFinishedProposeDlq()).to(createFanoutExchangeFinishedProposeDlq());
     }
 
     // QUEUES
 
     @Bean
     public Queue createQueueMsCreditAnalysis() {
-        return QueueBuilder.durable("pending-propose.ms-credit-analysis").build();
+        return QueueBuilder.durable("pending-propose.ms-credit-analysis").deadLetterExchange(pendingProposeExchangeDlx).maxPriority(10).build();
+    }
+
+    @Bean
+    public Queue createQueueMsFinishedPropose() {
+        return QueueBuilder.durable("concluded-propose.ms-propose").deadLetterExchange(finishedProposeExchangeDlx).maxPriority(10).build();
     }
 
     @Bean
     public Queue createQueueMsNotification() {
         return QueueBuilder.durable("pending-propose.ms-notification").build();
-    }
-
-    @Bean
-    public Queue createQueueMsFinishedPropose() {
-        return QueueBuilder.durable("concluded-propose.ms-propose").build();
     }
 
     @Bean
@@ -85,6 +116,17 @@ public class RabbitMQConfig {
     @Bean
     public Binding createBindingFinishedProposeMSNotification() {
         return BindingBuilder.bind(createQueueMsFinishedNotification()).to(createFanoutExchangeFinishedPropose());
+    }
+
+    // Spring automatically inject the connectionFactory
+    @Bean
+    public RabbitAdmin createRabbitAdmin(ConnectionFactory connectionFactory) {
+        return new RabbitAdmin(connectionFactory);
+    }
+
+    @Bean
+    public ApplicationListener<ApplicationReadyEvent> initializeAdmin(RabbitAdmin rabbitAdmin) {
+        return event -> rabbitAdmin.initialize();
     }
 
     @Bean

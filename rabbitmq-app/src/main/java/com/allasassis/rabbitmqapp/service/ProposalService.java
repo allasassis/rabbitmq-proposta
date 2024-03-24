@@ -6,6 +6,7 @@ import com.allasassis.rabbitmqapp.entity.Proposal;
 import com.allasassis.rabbitmqapp.mapper.ProposalMapper;
 import com.allasassis.rabbitmqapp.repository.ProposalRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,13 @@ public class ProposalService {
     public ProposalResponseDto create(ProposalRequestDto dto) {
         Proposal proposal = ProposalMapper.INSTANCE.convertDtoToProposal(dto);
         proposalRepository.save(proposal);
+        int priority = proposal.getUser().getSalary() > 10000 ? 10 : 5;
+
+        MessagePostProcessor messagePostProcessor = message -> {
+            message.getMessageProperties().setPriority(priority);
+            return message;
+        };
+
         notificationService.notify(proposal, exchange);
         return ProposalMapper.INSTANCE.convertEntityToDto(proposal);
     }
